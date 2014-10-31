@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Template" default="jar" basedir=".">
+    <property name="props" value="build.properties"/>
+    <property file="${props}"/>
+	<property name="name" value="${application.name}"/>
+	<!-- Preexisitng Directories -->
+	<property name="src" location="src"/>
+	<property name="lib" location="lib"/>
+	<!-- Output Directories -->	
+	<property name="build" location="build"/>
+		<property name="bin" location="${build}/bin"/>
+		<property name="dist" location="${build}/dist"/>
+			<property name="jarfile" location="${dist}/${name}.jar"/>
+		<property name="jar" location="${build}/jar"/>
+	<fileset id="lib.jars" dir="${lib}">
+		<include name="**/*.jar"/>
+	</fileset>
+	<path id="lib.path">
+		<fileset refid="lib.jars"/>
+		<pathelement path="${applejava}/AppleJavaExtensions.jar"/>
+	</path>
+	
+	<target name="prepare" description="Create build dirs">
+		<mkdir dir="${build}"/>
+			<mkdir dir="${bin}"/>
+			<mkdir dir="${dist}"/>
+			<mkdir dir="${jar}"/>
+	</target>
+	
+	<target name="version" depends="prepare" description="Prompt user to enter new version">
+		 <input
+			message="Please input a new version. Current version ${build.version}"
+			addproperty="new.version"
+		 />
+		<propertyfile file="${props}">
+			<entry key="build.version" value="${new.version}"/>
+		</propertyfile>
+	</target>
+	
+	<target name="compile" depends="prepare" description="Compile code">
+		<javac srcdir="${src}" destdir="${bin}"
+			source="${build.jvm}" target="${build.jvm}"
+			failonerror="true"
+        	includes="**/*.*"
+			classpathref="lib.path">
+		</javac>
+		<propertyfile file="${props}">
+			<entry key="build.date" type="date" value="now"/>
+		</propertyfile>
+		<buildnumber file="${props}"/>
+		<copy todir="${bin}">
+			<fileset dir="${src}">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+		<!-- <copy file="${props}" todir="${bin}"/> -->
+		<manifest file="${jar}/main-MANIFEST.MF">
+			<attribute name="Manifest-Version" value="1.0"/>
+			<attribute name="Main-Class" value="${main.class}"/>
+		</manifest>
+	</target>
+
+	<target name="jar" depends="compile" description="Build jar">
+		<jar jarfile="${jarfile}" manifest="${jar}/main-MANIFEST.MF">
+				<fileset dir="${bin}"/>
+		</jar>
+	</target>
+
+	<target name="copy" depends="jar" description="Copy jar">
+		<copy file="${jarfile}" todir="../Zest/lib"/>
+	</target>
+	
+	<target name="run" depends="jar" description="Run jar file">
+		<java jar="${jarfile}" fork="yes" failonerror="true"/>
+	</target>	
+	
+	<target name="deploy" description="Deploy Build" depends="version,jar">
+		<!-- At the moment deploy requires nothing else -->
+	</target>
+
+	<target name="clean" description="Remove build and dist directories">
+		<delete dir="${build}"/>
+	</target>
+</project>
