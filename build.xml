@@ -67,7 +67,7 @@
 	</target>
 
 	<target name="copy" depends="jar" description="Copy jar">
-		<copy file="${jarfile}" todir="../Zest/lib"/>
+		<copy file="${jarfile}" todir="../zest/lib"/>
 	</target>
 	
 	<target name="run" depends="jar" description="Run jar file">
